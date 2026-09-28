@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1] - 2026-09-28
+
+### Fixed
+
+- Resolve `npm`/`npx` as `.cmd` executables on Windows when spawning commands
+  without a shell.
+
 ## [1.0.0] - 2026-09-28
 
 ### Added

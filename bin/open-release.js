@@ -172,7 +172,9 @@ function runCommand(executable, args, dryRun) {
     return;
   }
 
-  const result = spawnSync(executable, args, {
+  const resolvedExecutable = resolveExecutable(executable);
+
+  const result = spawnSync(resolvedExecutable, args, {
     stdio: "inherit",
     shell: false
   });
@@ -184,6 +186,18 @@ function runCommand(executable, args, dryRun) {
   if (result.status !== 0) {
     fail(`${executable} exited with status ${result.status}.`);
   }
+}
+
+function resolveExecutable(executable) {
+  if (process.platform !== "win32") {
+    return executable;
+  }
+
+  if (executable === "npm" || executable === "npx") {
+    return `${executable}.cmd`;
+  }
+
+  return executable;
 }
 
 function readCommand(executable, args, dryRun) {
