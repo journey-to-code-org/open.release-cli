@@ -1,0 +1,42 @@
+{
+  "name": "@journey-to-code/open-release",
+  "version": "1.0.0",
+  "description": "A small CLI for testing, committing, versioning, tagging, publishing to npm, and creating GitHub releases.",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "bin": {
+    "open-release": "./bin/open-release.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "npm test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "release",
+    "npm",
+    "github",
+    "cli",
+    "version",
+    "semver",
+    "git"
+  ],
+  "license": "MIT",
+  "sideEffects": false
+}
