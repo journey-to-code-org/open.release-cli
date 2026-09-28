@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.3] - 2026-09-28
+
+### Fixed
+
+- Execute npm/npx through the Windows command processor instead of spawning
+  `.cmd` shims directly.
+- Preserve `shell: false` for normal executables and avoid PowerShell-specific
+  behavior.
+- Fix `spawnSync npm.cmd EINVAL` on Windows.
+
 ## [1.0.2] - 2026-09-28
 
 ### Added

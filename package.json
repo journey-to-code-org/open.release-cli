@@ -1,6 +1,6 @@
 {
   "name": "@journey-to-code/open-release",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A small CLI for testing, preflighting, versioning, tagging, publishing to npm, and creating GitHub releases.",
   "type": "module",
   "main": "./src/index.js",

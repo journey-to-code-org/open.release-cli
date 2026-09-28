@@ -116,6 +116,14 @@ Preview the release:
 open-release current -m "feat: establish v1 foundation" --dry-run
 ```
 
+
+### Windows
+
+`open-release` supports Windows PowerShell and Command Prompt. npm/npx are
+invoked through the Windows command processor because npm installs `.cmd`
+shims on Windows.
+
+
 ## Requirements
 
 The CLI expects:

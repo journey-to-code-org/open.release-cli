@@ -224,11 +224,8 @@ function runCommand(executable, args, dryRun) {
     return;
   }
 
-  const resolvedExecutable = resolveExecutable(executable);
-
-  const result = spawnSync(resolvedExecutable, args, {
-    stdio: "inherit",
-    shell: false
+  const result = spawnPortable(executable, args, {
+    stdio: "inherit"
   });
 
   if (result.error) {
@@ -240,16 +237,44 @@ function runCommand(executable, args, dryRun) {
   }
 }
 
-function resolveExecutable(executable) {
-  if (process.platform !== "win32") {
-    return executable;
+function spawnPortable(executable, args, options = {}) {
+  if (
+    process.platform === "win32" &&
+    (executable === "npm" || executable === "npx")
+  ) {
+    const commandProcessor = process.env.ComSpec || "cmd.exe";
+
+    return spawnSync(
+      commandProcessor,
+      ["/d", "/s", "/c", buildWindowsCommand(executable, args)],
+      {
+        ...options,
+        shell: false
+      }
+    );
   }
 
-  if (executable === "npm" || executable === "npx") {
-    return `${executable}.cmd`;
+  return spawnSync(executable, args, {
+    ...options,
+    shell: false
+  });
+}
+
+function buildWindowsCommand(executable, args) {
+  return [executable, ...args]
+    .map(quoteWindowsCmdArg)
+    .join(" ");
+}
+
+function quoteWindowsCmdArg(value) {
+  const string = String(value);
+
+  if (/^[A-Za-z0-9_./:@%+=,-]+$/u.test(string)) {
+    return string;
   }
 
-  return executable;
+  // cmd.exe uses doubled quotes inside a quoted argument.
+  return `"${string.replace(/"/gu, '""')}"`;
 }
 
 function readCommand(executable, args, dryRun) {
@@ -257,9 +282,9 @@ function readCommand(executable, args, dryRun) {
     return "";
   }
 
-  const result = spawnSync(executable, args, {
+  const result = spawnPortable(executable, args, {
     encoding: "utf8",
-    shell: false
+    stdio: "pipe"
   });
 
   if (result.error || result.status !== 0) {
@@ -286,7 +311,10 @@ function ensureGitRepository(dryRun) {
 
 function requireExecutable(name) {
   const check = process.platform === "win32" ? "where" : "which";
-  const result = spawnSync(check, [name], { stdio: "ignore", shell: false });
+  const result = spawnSync(check, [name], {
+    stdio: "ignore",
+    shell: false
+  });
 
   if (result.status !== 0) {
     fail(`Required executable not found: ${name}`);
