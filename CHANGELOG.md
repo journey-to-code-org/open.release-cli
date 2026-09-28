@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.4] - 2026-09-28
+
+### Fixed
+
+- Load `@journey-to-code/open-preflight` lazily only when the preflight step runs.
+- Keep `--version`, `--help`, dry runs, and `--skip-preflight` usable even if the
+  preflight dependency is missing or malformed.
+- Report a focused error when preflight cannot be loaded instead of crashing at
+  CLI startup.
+
 ## [1.0.3] - 2026-09-28
 
 ### Fixed

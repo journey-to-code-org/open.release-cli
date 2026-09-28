@@ -5,7 +5,6 @@ import { basename, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { runPreflight } from "@journey-to-code/open-preflight";
 import { buildReleasePlan, parseArgs } from "../src/index.js";
 
 const TOOL_PACKAGE_PATH = resolve(
@@ -28,7 +27,7 @@ Options:
   -V, --version          Show open.release version
 `.trim();
 
-function main() {
+async function main() {
   let args;
 
   try {
@@ -99,7 +98,7 @@ function main() {
   console.log(`Mode: ${args.release}${args.dryRun ? " (dry run)" : ""}\n`);
 
   for (const step of plan) {
-    runStep(step, args.dryRun);
+    await runStep(step, args.dryRun);
   }
 
   const finalPackage = args.dryRun
@@ -109,7 +108,7 @@ function main() {
   console.log(`\n✓ Release workflow completed for ${finalPackage.name}@${finalPackage.version}`);
 }
 
-function runStep(step, dryRun) {
+async function runStep(step, dryRun) {
   console.log(`→ ${step.label}`);
 
   if (step.type === "command") {
@@ -150,6 +149,8 @@ function runStep(step, dryRun) {
       console.log("  # matching local version tag is expected at this stage");
       return;
     }
+
+    const runPreflight = await loadPreflight();
 
     const preflight = runPreflight({
       skipTests: true,
@@ -214,6 +215,30 @@ function runStep(step, dryRun) {
         "--verify-tag"
       ],
       false
+    );
+  }
+}
+
+
+async function loadPreflight() {
+  try {
+    const module = await import("@journey-to-code/open-preflight");
+
+    if (typeof module.runPreflight !== "function") {
+      fail(
+        "@journey-to-code/open-preflight does not export runPreflight()."
+      );
+    }
+
+    return module.runPreflight;
+  } catch (error) {
+    fail(
+      [
+        "Could not load @journey-to-code/open-preflight.",
+        error instanceof Error ? error.message : String(error),
+        "",
+        "Try reinstalling open-release after repairing open-preflight."
+      ].join("\n")
     );
   }
 }
@@ -344,4 +369,6 @@ function fail(message) {
   process.exit(1);
 }
 
-main();
+main().catch((error) => {
+  fail(error instanceof Error ? error.message : String(error));
+});

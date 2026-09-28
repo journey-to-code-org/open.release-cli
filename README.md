@@ -124,6 +124,14 @@ invoked through the Windows command processor because npm installs `.cmd`
 shims on Windows.
 
 
+### Preflight loading
+
+`open-release` loads `@journey-to-code/open-preflight` only when the release
+workflow reaches the preflight step. This keeps `--version`, `--help`,
+`--dry-run`, and `--skip-preflight` available even if the preflight dependency
+is temporarily unavailable or malformed.
+
+
 ## Requirements
 
 The CLI expects:
