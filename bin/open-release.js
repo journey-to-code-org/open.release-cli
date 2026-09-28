@@ -5,6 +5,7 @@ import { basename, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { runPreflight } from "@journey-to-code/open-preflight";
 import { buildReleasePlan, parseArgs } from "../src/index.js";
 
 const TOOL_PACKAGE_PATH = resolve(
@@ -17,6 +18,7 @@ open-release [current|patch|minor|major|x.y.z] -m "<commit message>" [options]
 Options:
   -m, --message <text>   Source-change commit message
   --skip-tests           Skip npm test
+  --skip-preflight       Skip open.preflight safety checks
   --no-npm               Skip npm pack and npm publish
   --no-github            Skip GitHub Release creation
   --remote <name>        Git remote to push (default: origin)
@@ -82,6 +84,7 @@ function main() {
     release: args.release,
     message: args.message,
     skipTests: args.skipTests,
+    skipPreflight: args.skipPreflight,
     npm: args.npm,
     github: args.github,
     remote: args.remote,
@@ -136,6 +139,55 @@ function runStep(step, dryRun) {
     }
 
     runCommand("git", ["commit", "-m", step.message], false);
+    return;
+  }
+
+  if (step.type === "preflight") {
+    if (dryRun) {
+      console.log(
+        `  $ open-preflight --skip-tests${step.npm ? "" : " --skip-npm --skip-pack"}${step.github ? "" : " --skip-github"}`
+      );
+      console.log("  # matching local version tag is expected at this stage");
+      return;
+    }
+
+    const preflight = runPreflight({
+      skipTests: true,
+      skipPack: !step.npm,
+      skipNpm: !step.npm,
+      skipGithub: !step.github
+    });
+
+    const blockingFailures = preflight.checks.filter(
+      (check) =>
+        check.status === "fail" &&
+        check.id !== "git-tag"
+    );
+
+    for (const check of preflight.checks) {
+      const symbol =
+        check.status === "pass"
+          ? "✓"
+          : check.status === "warn"
+            ? "!"
+            : check.id === "git-tag"
+              ? "✓"
+              : "✗";
+
+      const message =
+        check.id === "git-tag" && check.status === "fail"
+          ? `${check.message} (expected: release tag was just created)`
+          : check.message;
+
+      console.log(`  ${symbol} ${message}`);
+    }
+
+    if (blockingFailures.length > 0) {
+      fail(
+        `preflight failed with ${blockingFailures.length} blocking check(s).`
+      );
+    }
+
     return;
   }
 

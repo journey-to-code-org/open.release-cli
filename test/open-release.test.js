@@ -30,12 +30,14 @@ test("parseArgs supports skip flags and dry-run", () => {
     "-m",
     "feat: example",
     "--skip-tests",
+    "--skip-preflight",
     "--no-npm",
     "--no-github",
     "--dry-run"
   ]);
 
   assert.equal(result.skipTests, true);
+  assert.equal(result.skipPreflight, true);
   assert.equal(result.npm, false);
   assert.equal(result.github, false);
   assert.equal(result.dryRun, true);
@@ -98,6 +100,7 @@ test("patch plan runs tests, commit, version, push, npm, and GitHub", () => {
       "Stage all changes",
       "Commit source changes",
       "Bump version (patch)",
+      "Run release preflight",
       "Push commits and tags",
       "Inspect npm package",
       "Publish @journey-to-code/example to npm",
@@ -147,6 +150,46 @@ test("plan can omit tests, npm, and GitHub", () => {
   );
   assert.equal(
     plan.some((step) => step.type === "github-release"),
+    false
+  );
+});
+
+test("preflight runs after version creation and before push", () => {
+  const plan = buildReleasePlan({
+    release: "patch",
+    message: "fix: example",
+    packageName: "@journey-to-code/example",
+    packageVersion: "1.0.0",
+    repoName: "example",
+    branch: "main"
+  });
+
+  const labels = plan.map((step) => step.label);
+
+  assert.ok(
+    labels.indexOf("Run release preflight") >
+      labels.indexOf("Bump version (patch)")
+  );
+
+  assert.ok(
+    labels.indexOf("Run release preflight") <
+      labels.indexOf("Push commits and tags")
+  );
+});
+
+test("preflight can be skipped explicitly", () => {
+  const plan = buildReleasePlan({
+    release: "patch",
+    message: "fix: example",
+    skipPreflight: true,
+    packageName: "@journey-to-code/example",
+    packageVersion: "1.0.0",
+    repoName: "example",
+    branch: "main"
+  });
+
+  assert.equal(
+    plan.some((step) => step.type === "preflight"),
     false
   );
 });

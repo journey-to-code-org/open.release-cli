@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.2] - 2026-09-28
+
+### Added
+
+- Integrate `@journey-to-code/open-preflight` as a default safety gate.
+- Run preflight after local version/tag creation and before remote push/publish.
+- Add `--skip-preflight` for intentional bypasses.
+
+### Changed
+
+- Treat the matching local version tag as expected during release preflight.
+- Block remote release steps when any other preflight check fails.
+
 ## [1.0.1] - 2026-09-28
 
 ### Fixed

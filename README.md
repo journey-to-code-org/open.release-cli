@@ -1,7 +1,8 @@
 # open.release
 
-A small, dependency-free CLI for the repetitive release flow used across the
-Journey to Code open-source packages.
+A small CLI for the repetitive release flow used across the Journey to Code
+open-source packages. It now uses `@journey-to-code/open-preflight` as a safety
+gate before pushing or publishing.
 
 It can:
 
@@ -9,10 +10,11 @@ It can:
 2. stage all changes,
 3. create one source-change commit,
 4. bump the npm version and create the Git tag,
-5. push commits and tags,
-6. inspect the npm package with `npm pack --dry-run`,
-7. publish the package to npm,
-8. create the matching GitHub Release.
+5. run `open.preflight` against the release state,
+6. push commits and tags,
+7. inspect the npm package with `npm pack --dry-run`,
+8. publish the package to npm,
+9. create the matching GitHub Release.
 
 ## Install
 
@@ -84,6 +86,7 @@ open-release patch -m "fix: example" --dry-run
 ```text
 -m, --message <text>   Source-change commit message
 --skip-tests           Do not run npm test
+--skip-preflight       Skip open.preflight safety checks
 --no-npm               Do not run npm pack/publish
 --no-github            Do not create a GitHub Release
 --remote <name>        Git remote to push (default: origin)
@@ -170,3 +173,19 @@ npm test
 ## License
 
 MIT
+
+
+## Preflight integration
+
+Starting in v1.0.2, `open-release` invokes
+`@journey-to-code/open-preflight` after the local release version/tag has been
+created and before any push or publish operation.
+
+The matching local version tag is expected at that stage, so that one
+preflight condition is treated as satisfied. Other failures—including package
+metadata problems, npm authentication/version conflicts, packaging failures,
+missing remotes, GitHub authentication issues, or an existing GitHub
+release—stop the release before remote mutation.
+
+Use `--skip-preflight` only when you intentionally want the older direct
+release flow.

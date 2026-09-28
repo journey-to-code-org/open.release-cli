@@ -2,6 +2,7 @@ export interface ParsedArgs {
   release: string | null;
   message: string | null;
   skipTests: boolean;
+  skipPreflight: boolean;
   npm: boolean;
   github: boolean;
   remote: string;
@@ -30,15 +31,24 @@ export interface GithubReleaseStep {
   repoName: string;
 }
 
+export interface PreflightStep {
+  type: "preflight";
+  label: string;
+  npm: boolean;
+  github: boolean;
+}
+
 export type ReleaseStep =
   | CommandStep
   | CommitIfNeededStep
+  | PreflightStep
   | GithubReleaseStep;
 
 export interface ReleasePlanOptions {
   release: string;
   message: string;
   skipTests?: boolean;
+  skipPreflight?: boolean;
   npm?: boolean;
   github?: boolean;
   remote?: string;

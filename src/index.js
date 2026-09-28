@@ -5,6 +5,7 @@ export function parseArgs(argv) {
     release: null,
     message: null,
     skipTests: false,
+    skipPreflight: false,
     npm: true,
     github: true,
     remote: "origin",
@@ -31,6 +32,11 @@ export function parseArgs(argv) {
 
     if (arg === "--skip-tests") {
       result.skipTests = true;
+      continue;
+    }
+
+    if (arg === "--skip-preflight") {
+      result.skipPreflight = true;
       continue;
     }
 
@@ -119,6 +125,7 @@ export function buildReleasePlan({
   release,
   message,
   skipTests = false,
+  skipPreflight = false,
   npm = true,
   github = true,
   remote = "origin",
@@ -162,6 +169,15 @@ export function buildReleasePlan({
         `Bump version (${release})`
       )
     );
+  }
+
+  if (!skipPreflight) {
+    steps.push({
+      type: "preflight",
+      label: "Run release preflight",
+      npm,
+      github
+    });
   }
 
   steps.push(
